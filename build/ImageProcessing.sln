@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageProcessing", "ImageProcessing.vcxproj", "{7487BB00-FFCB-427F-BB23-BC1C10CBC5EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7487BB00-FFCB-427F-BB23-BC1C10CBC5EF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7487BB00-FFCB-427F-BB23-BC1C10CBC5EF}.Debug|Win32.Build.0 = Debug|Win32
+		{7487BB00-FFCB-427F-BB23-BC1C10CBC5EF}.Release|Win32.ActiveCfg = Release|Win32
+		{7487BB00-FFCB-427F-BB23-BC1C10CBC5EF}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
