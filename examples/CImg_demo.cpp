@@ -43,9 +43,12 @@
 
 // Include static image data, so that the exe does not depend on external image files.
 #include "img/CImg_demo.h"
+#include <iostream>
+#include <iomanip>
 
+using namespace std;
 //Include the nVidia CUDA runtime for Parallel programming
-#include <cuda_runtime.h>
+//#include <cuda_runtime.h>
 
 // Include CImg library header.
 #include "CImg.h"
@@ -180,6 +183,9 @@ void* item_gamma_correction() {
 //-------------------------
 void* item_filled_triangles() {
 
+    // start timing
+    time_t ts, te;
+    
   // Create a colored 640x480 background image which consists of different color shades.
   CImg<float> background(640,480,1,3);
   cimg_forXY(background,x,y) background.fillC(x,y,0,
@@ -197,6 +203,8 @@ void* item_filled_triangles() {
   float posx[100], posy[100], rayon[100], angle[100], veloc[100], opacity[100];
   int num = 1;
   std::srand((unsigned int)time(0));
+    
+ 
   for (int k = 0; k<100; ++k) {
     posx[k] = (float)(cimg::rand()*img0.width());
     posy[k] = (float)(cimg::rand()*img0.height());
@@ -208,11 +216,12 @@ void* item_filled_triangles() {
     color[k][2] = (unsigned char)(cimg::rand()*255);
     opacity[k] = (float)(0.3 + 1.5*cimg::rand());
   }
-
+    int i = 0;
   // Start animation loop.
-  while (!disp.is_closed() && !disp.is_keyQ() && !disp.is_keyESC()) {
+  while (!disp.is_closed() && !disp.is_keyQ() && !disp.is_keyESC() && i < 1000) {
     img = img0;
-
+      
+      i++;
     // Draw each triangle on the background image.
     for (int k = 0; k<num; ++k) {
       const int
@@ -237,6 +246,7 @@ void* item_filled_triangles() {
         if (posy[k]<0 || posy[k]>=img.height()) posy[k] = (float)(cimg::rand()*img.height());
       }
     }
+ 
 
     // Display current animation framerate, and refresh display window.
     img.draw_text(5,5,"%u frames/s",white,0,0.5f,13,(unsigned int)disp.frames_per_second());
@@ -246,6 +256,9 @@ void* item_filled_triangles() {
     // Allow the user to toggle fullscreen mode, by pressing CTRL+F.
     if (disp.is_keyCTRLLEFT() && disp.is_keyF()) disp.resize(640,480,false).toggle_fullscreen(false);
   }
+    // elapsed time
+    te = time(NULL);
+   
   return 0;
 }
 
@@ -366,6 +379,7 @@ void* item_mandelbrot_explorer() {
       if (disp.is_closed() || disp.is_keyQ() || disp.is_keyESC()) stopflag = endflag = true;
     }
   }
+   
   return 0;
 }
 
@@ -1472,7 +1486,18 @@ void start_item(const unsigned int demo_number) {
   case 3: item_anisotropic_smoothing(); break;
   case 4: item_fractal_animation(); break;
   case 5: item_gamma_correction(); break;
-  case 6: item_filled_triangles(); break;
+  case 6:
+          // start timing
+          time_t ts, te;
+          ts = time(NULL);
+          item_filled_triangles();
+          te = time(NULL);
+          
+          // elapsed time
+          cout << setprecision(3);
+          cout << "Elapsed time : " << difftime(te, ts) << endl;
+          
+          break;
   case 7: item_mandelbrot_explorer(); break;
   case 8: item_mini_paint(); break;
   case 9: item_soccer_bobs(); break;
@@ -1504,108 +1529,191 @@ void start_item(const unsigned int demo_number) {
 
   --------------------------*/
 int main(int argc, char **argv) {
-
-  // Display info about the CImg Library configuration
-  //--------------------------------------------------
-  unsigned int demo_number = cimg_option("-run",0,0);
-  if (demo_number) start_item(demo_number);
-  else {
-    cimg::info();
-
-    // Demo selection menu
-    //---------------------
-    const unsigned char
-      white[]  = { 255, 255, 255 }, black[] = { 0, 0, 0 },     red[] = { 120, 50, 80 },
-      yellow[] = { 200, 155, 0 },   green[] = { 30, 200, 70 }, purple[] = { 175, 32, 186 },
-      blue[]   = { 55, 140, 185 },  grey[] = { 127, 127, 127 };
-    float
-      rx = 0, ry = 0, t = 0, gamma = 0, vgamma = 0, T = 0.9f,
-      nrx = (float)(2*cimg::crand()),
-      nry = (float)(2*cimg::crand());
-    int y0 = 2*13;
-    CImg<unsigned char> back(1,2,1,3,10), fore, text, img;
-    back.fillC(0,1,0,10,10,235).resize(320,420,1,3,3).get_shared_channel(2).noise(10,1).draw_plasma();
-    back.draw_rectangle(0,y0-7,back.width()-1,y0+20,red);
-    fore.assign(back.width(),50,1,1,0).draw_text(20,y0-5,"** CImg %u.%u.%u Samples **",grey,0,1,24,
-                                                cimg_version/100,(cimg_version/10)%10,cimg_version%10);
-    (fore+=fore.get_dilate(3).dilate(3)).resize(-100,-100,1,3);
-    cimg_forXY(fore,x,y)
-      if (fore(x,y)==127) fore(x,y,0) = fore(x,y,1) = fore(x,y,2) = 1;
-      else if (fore(x,y)) {
-        const float val = cimg::min(255.0f,7.0f*(y-3));
-        fore(x,y,0) = (unsigned char)(val/1.5f);
-        fore(x,y,1) = (unsigned char)val;
-        fore(x,y,2) = (unsigned char)(val/1.1f);
-      }
-    text.draw_text(1,1,
-                   "1- Blurring Gradient\n"
-                   "2- Rotozoom\n"
-                   "3- Anisotropic Smoothing\n"
-                   "4- Fractal Animation\n"
-                   "5- Gamma Correction\n"
-                   "6- Filled Triangles\n"
-                   "7- Mandelbrot explorer\n"
-                   "8- Mini-Paint\n"
-                   "9- Soccer Bobs\n"
-                   "10- Bump Effect\n"
-                   "11- Bouncing Bubble\n"
-                   "12- Virtual Landscape\n"
-                   "13- Plasma & Sinus Scroll\n"
-                   "14- Oriented Convolutions\n"
-                   "15- Shade Bobs\n"
-                   "16- Fourier Filtering\n"
-                   "17- Image Zoomer\n"
-                   "18- Blobs Editor\n"
-                   "19- Double Torus\n"
-                   "20- 3D Metaballs\n"
-                   "21- Fireworks\n"
-                   "22- Rubber Logo\n"
-                   "23- Image Waves\n"
-                   "24- Breakout\n"
-                   "25- 3D Reflection\n"
-                   "26- Fish-Eye Magnification\n"
-                   "27- Word Puzzle\n",
-                   white,0,1,13).resize(-100,-100,1,3);
-    fore.resize(back,0).draw_image(20,y0+2*13,text|=text.get_dilate(3)>>4);
-
-    CImgDisplay disp(back,"CImg Library Samples",0,false,true);
-    disp.move((disp.screen_width()-disp.window_width())/2,(disp.screen_height()-disp.window_height())/2);
-    img = back; back*=0.15f;
-    for (y0+=2*13; !disp.is_closed() && !disp.is_keyQ() && !disp.is_keyESC(); demo_number = 0) {
-      while (!demo_number && !disp.is_closed() && !disp.is_keyQ() && !disp.is_keyESC()) {
-        img*=0.85f; img+=back;
-        for (int i = 0; i<60; ++i) {
-          const float
-            mx = (float)(img.width()/2+(img.width()/2-30)*((1-gamma)*std::cos(3*t+rx*i*18.0f*cimg::PI/180) +
-                                                         gamma*std::cos(3*t+nrx*i*18.0f*cimg::PI/180))),
-            my = (float)(img.height()/2+(img.height()/2-30)*((1-gamma)*std::sin(4*t+ry*i*18.0f*cimg::PI/180) +
-                                                         gamma*std::sin(4*t+nry*i*18.0f*cimg::PI/180))),
-            mz = (float)(1.3f + 1.2f*((1-gamma)*std::sin(2*t+(rx+ry)*i*20*cimg::PI/180) +
-                                      gamma*std::sin(2*t+(nrx+nry)*i*20*cimg::PI/180)));
-          const int j = i%5;
-          img.draw_circle((int)mx,(int)my,(int)(10*mz),j!=0?(j!=1?(j!=2?(j!=3?green:red):yellow):purple):blue,0.2f).
-            draw_circle((int)(mx+4*mz),(int)(my-4),(int)(3*mz),white,0.1f).
-            draw_circle((int)mx,(int)my,(int)(10*mz),black,0.2f,~0U);
-        }
-        const unsigned char *ptrs = fore.data();
-        cimg_for(img,ptrd,unsigned char) { const unsigned char val = *(ptrs++); if (val) *ptrd = val; }
-        int y = disp.mouse_y();
-        if (y>=y0 && y<y0+27*13) {
-          y = (y/13)*13+7;
-          for (int yy = y-7; yy<=y+6; ++yy) img.draw_rectangle(0,yy,0,1,img.width()-1,yy,0,1,(unsigned char)(130-15*cimg::abs(yy-y)));
-          img.draw_triangle(2,y-4,2,y+4,8,y,yellow).draw_triangle(img.width()-2,y-4,img.width()-2,y+4,img.width()-8,y,yellow);
-        }
-        gamma+=vgamma; if (gamma>1) { gamma = vgamma = 0; rx = nrx; ry = nry; nrx=(float)(2*cimg::crand()); nry=(float)(2*cimg::crand()); }
-        t+=0.006f; T+=0.005f; if (T>1) { T-=(float)(1+cimg::crand()); vgamma = 0.03f; }
-        if (disp.button()) { demo_number = 1+(disp.mouse_y()-y0)/13; disp.set_button(); }
-        disp.resize(disp,false).display(img).wait(25);
-      }
-      start_item(demo_number);
+    
+    
+    // start timing
+    time_t ts, te;
+    ts = time(NULL);
+    
+    // Create a colored 640x480 background image which consists of different color shades.
+    CImg<float> background(640,480,1,3);
+    cimg_forXY(background,x,y) background.fillC(x,y,0,
+                                                x*std::cos(6.0*y/background.height()) + y*std::sin(9.0*x/background.width()),
+                                                x*std::sin(8.0*y/background.height()) - y*std::cos(11.0*x/background.width()),
+                                                x*std::cos(13.0*y/background.height()) - y*std::sin(8.0*x/background.width()));
+    background.normalize(0,180);
+    
+    // Init images and create display window.
+    CImg<unsigned char> img0(background), img;
+    unsigned char white[] = { 255, 255, 255 }, color[100][3];
+    CImgDisplay disp(img0,"[#6] - Filled Triangles (Click to shrink)");
+    
+    // Define random properties (pos, size, colors, ..) for all triangles that will be displayed.
+    float posx[100], posy[100], rayon[100], angle[100], veloc[100], opacity[100];
+    int num = 1;
+    std::srand((unsigned int)time(0));
+    
+    
+    for (int k = 0; k<100; ++k) {
+        posx[k] = (float)(cimg::rand()*img0.width());
+        posy[k] = (float)(cimg::rand()*img0.height());
+        rayon[k] = (float)(10 + cimg::rand()*50);
+        angle[k] = (float)(cimg::rand()*360);
+        veloc[k] = (float)(cimg::rand()*20 - 10);
+        color[k][0] = (unsigned char)(cimg::rand()*255);
+        color[k][1] = (unsigned char)(cimg::rand()*255);
+        color[k][2] = (unsigned char)(cimg::rand()*255);
+        opacity[k] = (float)(0.3 + 1.5*cimg::rand());
     }
-  }
+    int i = 0;
+    // Start animation loop.
+    while (!disp.is_closed() && !disp.is_keyQ() && !disp.is_keyESC() && i < 1000) {
+        img = img0;
+        
+        i++;
+        // Draw each triangle on the background image.
+        for (int k = 0; k<num; ++k) {
+            const int
+            x0 = (int)(posx[k] + rayon[k]*std::cos(angle[k]*cimg::PI/180)),
+            y0 = (int)(posy[k] + rayon[k]*std::sin(angle[k]*cimg::PI/180)),
+            x1 = (int)(posx[k] + rayon[k]*std::cos((angle[k] + 120)*cimg::PI/180)),
+            y1 = (int)(posy[k] + rayon[k]*std::sin((angle[k] + 120)*cimg::PI/180)),
+            x2 = (int)(posx[k] + rayon[k]*std::cos((angle[k] + 240)*cimg::PI/180)),
+            y2 = (int)(posy[k] + rayon[k]*std::sin((angle[k] + 240)*cimg::PI/180));
+            if (k%10) img.draw_triangle(x0,y0,x1,y1,x2,y2,color[k],opacity[k]);
+            else img.draw_triangle(x0,y0,x1,y1,x2,y2,img0,0,0,img0.width()-1,0,0,img.height()-1,opacity[k]);
+            img.draw_triangle(x0,y0,x1,y1,x2,y2,white,opacity[k],~0U);
+            
+            // Make the triangles rotate, and check for mouse click event.
+            // (to make triangles collapse or join).
+            angle[k]+=veloc[k];
+            if (disp.mouse_x()>0 && disp.mouse_y()>0) {
+                float u = disp.mouse_x() - posx[k], v = disp.mouse_y() - posy[k];
+                if (disp.button()) { u = -u; v = -v; }
+                posx[k]-=0.03f*u, posy[k]-=0.03f*v;
+                if (posx[k]<0 || posx[k]>=img.width()) posx[k] = (float)(cimg::rand()*img.width());
+                if (posy[k]<0 || posy[k]>=img.height()) posy[k] = (float)(cimg::rand()*img.height());
+            }
+        }
+        
+        
+        // Display current animation framerate, and refresh display window.
+        img.draw_text(5,5,"%u frames/s",white,0,0.5f,13,(unsigned int)disp.frames_per_second());
+        img0.resize(disp.display(img).resize(false).wait(20));
+        if (++num>100) num = 100;
+        
+        // Allow the user to toggle fullscreen mode, by pressing CTRL+F.
+        if (disp.is_keyCTRLLEFT() && disp.is_keyF()) disp.resize(640,480,false).toggle_fullscreen(false);
+    }
+    
+    te = time(NULL);
+    
+    // elapsed time
+    cout << setprecision(3);
+    cout << "Elapsed time : " << difftime(te, ts) << endl;
+
+//  // Display info about the CImg Library configuration
+//  //--------------------------------------------------
+//  unsigned int demo_number = cimg_option("-run",0,0);
+//  if (demo_number) start_item(demo_number);
+//  else {
+//    cimg::info();
+//
+//    // Demo selection menu
+//    //---------------------
+//    const unsigned char
+//      white[]  = { 255, 255, 255 }, black[] = { 0, 0, 0 },     red[] = { 120, 50, 80 },
+//      yellow[] = { 200, 155, 0 },   green[] = { 30, 200, 70 }, purple[] = { 175, 32, 186 },
+//      blue[]   = { 55, 140, 185 },  grey[] = { 127, 127, 127 };
+//    float
+//      rx = 0, ry = 0, t = 0, gamma = 0, vgamma = 0, T = 0.9f,
+//      nrx = (float)(2*cimg::crand()),
+//      nry = (float)(2*cimg::crand());
+//    int y0 = 2*13;
+//    CImg<unsigned char> back(1,2,1,3,10), fore, text, img;
+//    back.fillC(0,1,0,10,10,235).resize(320,420,1,3,3).get_shared_channel(2).noise(10,1).draw_plasma();
+//    back.draw_rectangle(0,y0-7,back.width()-1,y0+20,red);
+//    fore.assign(back.width(),50,1,1,0).draw_text(20,y0-5,"** CImg %u.%u.%u Samples **",grey,0,1,24,
+//                                                cimg_version/100,(cimg_version/10)%10,cimg_version%10);
+//    (fore+=fore.get_dilate(3).dilate(3)).resize(-100,-100,1,3);
+//    cimg_forXY(fore,x,y)
+//      if (fore(x,y)==127) fore(x,y,0) = fore(x,y,1) = fore(x,y,2) = 1;
+//      else if (fore(x,y)) {
+//        const float val = cimg::min(255.0f,7.0f*(y-3));
+//        fore(x,y,0) = (unsigned char)(val/1.5f);
+//        fore(x,y,1) = (unsigned char)val;
+//        fore(x,y,2) = (unsigned char)(val/1.1f);
+//      }
+//    text.draw_text(1,1,
+//                   "1- Blurring Gradient\n"
+//                   "2- Rotozoom\n"
+//                   "3- Anisotropic Smoothing\n"
+//                   "4- Fractal Animation\n"
+//                   "5- Gamma Correction\n"
+//                   "6- Filled Triangles\n"
+//                   "7- Mandelbrot explorer\n"
+//                   "8- Mini-Paint\n"
+//                   "9- Soccer Bobs\n"
+//                   "10- Bump Effect\n"
+//                   "11- Bouncing Bubble\n"
+//                   "12- Virtual Landscape\n"
+//                   "13- Plasma & Sinus Scroll\n"
+//                   "14- Oriented Convolutions\n"
+//                   "15- Shade Bobs\n"
+//                   "16- Fourier Filtering\n"
+//                   "17- Image Zoomer\n"
+//                   "18- Blobs Editor\n"
+//                   "19- Double Torus\n"
+//                   "20- 3D Metaballs\n"
+//                   "21- Fireworks\n"
+//                   "22- Rubber Logo\n"
+//                   "23- Image Waves\n"
+//                   "24- Breakout\n"
+//                   "25- 3D Reflection\n"
+//                   "26- Fish-Eye Magnification\n"
+//                   "27- Word Puzzle\n",
+//                   white,0,1,13).resize(-100,-100,1,3);
+//    fore.resize(back,0).draw_image(20,y0+2*13,text|=text.get_dilate(3)>>4);
+//
+//    CImgDisplay disp(back,"CImg Library Samples",0,false,true);
+//    disp.move((disp.screen_width()-disp.window_width())/2,(disp.screen_height()-disp.window_height())/2);
+//    img = back; back*=0.15f;
+//    for (y0+=2*13; !disp.is_closed() && !disp.is_keyQ() && !disp.is_keyESC(); demo_number = 0) {
+//      while (!demo_number && !disp.is_closed() && !disp.is_keyQ() && !disp.is_keyESC()) {
+//        img*=0.85f; img+=back;
+//        for (int i = 0; i<60; ++i) {
+//          const float
+//            mx = (float)(img.width()/2+(img.width()/2-30)*((1-gamma)*std::cos(3*t+rx*i*18.0f*cimg::PI/180) +
+//                                                         gamma*std::cos(3*t+nrx*i*18.0f*cimg::PI/180))),
+//            my = (float)(img.height()/2+(img.height()/2-30)*((1-gamma)*std::sin(4*t+ry*i*18.0f*cimg::PI/180) +
+//                                                         gamma*std::sin(4*t+nry*i*18.0f*cimg::PI/180))),
+//            mz = (float)(1.3f + 1.2f*((1-gamma)*std::sin(2*t+(rx+ry)*i*20*cimg::PI/180) +
+//                                      gamma*std::sin(2*t+(nrx+nry)*i*20*cimg::PI/180)));
+//          const int j = i%5;
+//          img.draw_circle((int)mx,(int)my,(int)(10*mz),j!=0?(j!=1?(j!=2?(j!=3?green:red):yellow):purple):blue,0.2f).
+//            draw_circle((int)(mx+4*mz),(int)(my-4),(int)(3*mz),white,0.1f).
+//            draw_circle((int)mx,(int)my,(int)(10*mz),black,0.2f,~0U);
+//        }
+//        const unsigned char *ptrs = fore.data();
+//        cimg_for(img,ptrd,unsigned char) { const unsigned char val = *(ptrs++); if (val) *ptrd = val; }
+//        int y = disp.mouse_y();
+//        if (y>=y0 && y<y0+27*13) {
+//          y = (y/13)*13+7;
+//          for (int yy = y-7; yy<=y+6; ++yy) img.draw_rectangle(0,yy,0,1,img.width()-1,yy,0,1,(unsigned char)(130-15*cimg::abs(yy-y)));
+//          img.draw_triangle(2,y-4,2,y+4,8,y,yellow).draw_triangle(img.width()-2,y-4,img.width()-2,y+4,img.width()-8,y,yellow);
+//        }
+//        gamma+=vgamma; if (gamma>1) { gamma = vgamma = 0; rx = nrx; ry = nry; nrx=(float)(2*cimg::crand()); nry=(float)(2*cimg::crand()); }
+//        t+=0.006f; T+=0.005f; if (T>1) { T-=(float)(1+cimg::crand()); vgamma = 0.03f; }
+//        if (disp.button()) { demo_number = 1+(disp.mouse_y()-y0)/13; disp.set_button(); }
+//        disp.resize(disp,false).display(img).wait(25);
+//      }
+       // start_item(6);
+        
+ //   }
+  //}
 
   // Exit demo
   //-----------
-  std::exit(0);
+  //exit(0);
   return 0;
 }
