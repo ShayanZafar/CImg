@@ -45,37 +45,8 @@
 #-------------------------------------------------------
 
 # Files which do not necessarily require external libraries to run.
-CIMG_FILES = CImg_demo \
-	     captcha \
-             curve_editor2d \
-	     dtmri_view3d \
-	     edge_explorer2d \
-	     fade_images \
-	     gaussian_fit1d \
-             generate_loop_macros \
-	     hough_transform2d \
-	     image_registration2d \
-	     image2ascii \
-	     image_surface3d \
-	     jawbreaker \
-	     mcf_levelsets2d \
-	     mcf_levelsets3d \
-	     odykill \
-	     pde_heatflow2d \
-	     pde_TschumperleDeriche2d \
-	     plotter1d \
-	     radon_transform2d \
-	     scene3d \
-	     spherical_function3d \
-	     tetris \
-	     tron \
-	     tutorial \
-	     wavelet_atrous \
-	     use_draw_gradient \
-	     use_nlmeans \
-	     use_skeleton \
-	     use_RGBclass \
-
+CIMG_FILES = CImg_demo
+	   
 # Files which requires external libraries to run.
 CIMG_EXTRA_FILES = use_jpeg_buffer \
                    gmic_gimp \
@@ -100,17 +71,13 @@ CCVER        = "icc \( `$(CC) -v 2>&1`\)"
 CFLAGS       = -I..
 LDFLAGS      =
 else
-CFLAGS       = -I.. -Wall -W
-LDFLAGS      = -lm
+CFLAGS       = -I.. -Wall -W -O2 -g -pg 
+LDFLAGS      = -lm -pg
 endif
 
 #--------------------------------------------------
 # Set compilation flags allowing to customize CImg
 #--------------------------------------------------
-
-# add profiling capabilities
- PROFILING = -pg -ow1
- PROFILING2= -c -O2 -g -pg -std=c++0x
 
 # Flags to enable strict code standards
 ifeq ($(CC),icc)
