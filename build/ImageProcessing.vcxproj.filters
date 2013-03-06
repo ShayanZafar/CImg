@@ -9,13 +9,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\examples\CImg_demo.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\examples\CImg.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="..\examples\img\CImg_demo.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\examples\device_cimg_functions.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\examples\FilledTriangles.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

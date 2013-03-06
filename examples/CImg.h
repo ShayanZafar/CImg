@@ -52,6 +52,8 @@
  #
 */
 
+
+
 // Set version number of the library.
 #ifndef cimg_version
 #define cimg_version 154
@@ -11537,7 +11539,7 @@ namespace cimg_library_suffixed {
          \c unsigned \c int variables.
          Access to the initial \c unsigned \c int variable is possible (though not recommended) by <tt>(*this)._width</tt>.
     **/
-    int width() const {
+   int width() const {
       return (int)_width;
     }
 
@@ -25603,7 +25605,7 @@ namespace cimg_library_suffixed {
     CImg<Tfloat> get_haar(const char axis, const bool invert=false, const unsigned int nb_scales=1) const {
       if (is_empty() || !nb_scales) return +*this;
       CImg<Tfloat> res;
-      const Tfloat sqrt2 = std::sqrt(2);
+      const Tfloat sqrt2 = std::sqrt(static_cast<float>(2));
       if (nb_scales==1) {
         switch (cimg::uncase(axis)) { // Single scale transform
         case 'x' : {
@@ -28643,7 +28645,7 @@ namespace cimg_library_suffixed {
         by = 3*(y1 - y0) - 2*v0 - v1,
         az = w0 + w1 + 2*(z0 - z1),
         bz = 3*(z1 - z0) - 2*w0 - w1,
-        _precision = 1/(std::sqrt(cimg::sqr(x0-x1)+cimg::sqr(y0-y1))*(precision>0?precision:1));
+        _precision = 1/(std::sqrt(static_cast<float>(cimg::sqr(x0-x1)+cimg::sqr(y0-y1))*(precision>0?precision:1)));
       int ox = x0, oy = y0, oz = z0;
       for (float t = 0; t<1; t+=_precision) {
         const float t2 = t*t, t3 = t2*t;
@@ -28700,7 +28702,7 @@ namespace cimg_library_suffixed {
         bx = 3*(x1 - x0) - 2*u0 - u1,
         ay = v0 + v1 + 2*(y0 - y1),
         by = 3*(y1 - y0) - 2*v0 - v1,
-        _precision = 1/(std::sqrt(cimg::sqr(x0-x1)+cimg::sqr(y0-y1))*(precision>0?precision:1));
+        _precision = 1/(std::sqrt(static_cast<float>(cimg::sqr(x0-x1)+cimg::sqr(y0-y1)))*(precision>0?precision:1));
       int ox = x0, oy = y0, otx = tx0, oty = ty0;
       for (float t1 = 0; t1<1; t1+=_precision) {
         const float t2 = t1*t1, t3 = t2*t1;

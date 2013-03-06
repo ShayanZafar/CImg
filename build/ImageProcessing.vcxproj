@@ -11,10 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\examples\CImg_demo.cpp" />
+    <ClInclude Include="..\examples\CImg.h" />
+    <ClInclude Include="..\examples\device_cimg_functions.h" />
+    <ClInclude Include="..\examples\img\CImg_demo.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\examples\CImg.h" />
+    <CudaCompile Include="..\examples\FilledTriangles.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7487BB00-FFCB-427F-BB23-BC1C10CBC5EF}</ProjectGuid>
