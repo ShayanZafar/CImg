@@ -87,9 +87,9 @@ __global__ void initializeArrays(float* posx, float* posy,float* rayon, float* v
 	__syncthreads();
 }
 
-void errCheck(cudaError_t err){
+void errCheck(cudaError_t err, const char* msg){
 	 if (err != cudaSuccess)
-                 std::cout << cudaGetErrorString(err) << std::endl;
+        std::cout<< msg << ": " << cudaGetErrorString(err) << std::endl;
 }
 
 /*---------------------------
@@ -126,24 +126,32 @@ int main() {
 	float* d_angle;
 	float* d_veloc;
 	float* d_opacity;
-	//unsigned char d_color[100][3];
 	unsigned char* d_color;
+
+	// CURAND state
 	curandState* devState;
+	// error handling
 	cudaError_t err;
 
 	// allocate memory on the device for the device arrays
 	err = cudaMalloc((void**)&d_posx, 100 * sizeof(float));
+	errCheck(err, "cudaMalloc((void**)&d_posx, 100 * sizeof(float))");
 	err = cudaMalloc((void**)&d_posy, 100 * sizeof(float));
+	errCheck(err,"cudaMalloc((void**)&d_posy, 100 * sizeof(float))");
 	err = cudaMalloc((void**)&d_rayon, 100 * sizeof(float));
+	errCheck(err,"cudaMalloc((void**)&d_rayon, 100 * sizeof(float))");
     err = cudaMalloc((void**)&d_angle, 100 * sizeof(float));
+	errCheck(err,"cudaMalloc((void**)&d_angle, 100 * sizeof(float))");
 	err = cudaMalloc((void**)&d_veloc, 100 * sizeof(float));
+	errCheck(err,"cudaMalloc((void**)&d_veloc, 100 * sizeof(float))");
 	err = cudaMalloc((void**)&d_opacity, 100 * sizeof(float));
+	errCheck(err,"cudaMalloc((void**)&d_opacity, 100 * sizeof(float))");
 	err = cudaMalloc((void**)&devState, 100*sizeof(curandState));
-	errCheck(err);
+	errCheck(err,"cudaMalloc((void**)&devState, 100*sizeof(curandState))");
 	size_t pitch;
 	//allocated the device memory for source array  
 	err = cudaMallocPitch(&d_color, &pitch, 3 * sizeof(unsigned char),100);
-	
+	errCheck(err,"cudaMallocPitch(&d_color, &pitch, 3 * sizeof(unsigned char),100)");
 	// launch grid of threads
 	dim3 dimBlock(100);
 	dim3 dimGrid(1);
@@ -157,19 +165,25 @@ int main() {
 	/*Kernel for initializing Arrays */
 	initializeArrays<<<1, 100>>>(d_posx, d_posy, d_rayon, d_veloc, d_opacity, d_angle,
 										d_color, img0.height(), img0.width(), devState, pitch);
-	 errCheck(err);
 	// synchronize the device and the host
     cudaDeviceSynchronize();
 	
 	// get the populated arrays back to the host for use
 	err = cudaMemcpy(posx,d_posx, 100 * sizeof(float), cudaMemcpyDeviceToHost);
+	errCheck(err,"cudaMemcpy(posx,d_posx, 100 * sizeof(float), cudaMemcpyDeviceToHost)");
 	err = cudaMemcpy(posy,d_posy, 100 * sizeof(float), cudaMemcpyDeviceToHost);
+	errCheck(err,"cudaMemcpy(posy,d_posy, 100 * sizeof(float), cudaMemcpyDeviceToHost)");
 	err = cudaMemcpy(rayon,d_rayon, 100 * sizeof(float), cudaMemcpyDeviceToHost);
+	errCheck(err,"cudaMemcpy(rayon,d_rayon, 100 * sizeof(float), cudaMemcpyDeviceToHost)");
 	err = cudaMemcpy(veloc,d_veloc, 100 * sizeof(float), cudaMemcpyDeviceToHost);
+	errCheck(err,"cudaMemcpy(veloc,d_veloc, 100 * sizeof(float), cudaMemcpyDeviceToHost)");
 	err = cudaMemcpy(opacity,d_opacity, 100 * sizeof(float), cudaMemcpyDeviceToHost);
+	errCheck(err,"cudaMemcpy(opacity,d_opacity, 100 * sizeof(float), cudaMemcpyDeviceToHost)");
 	err = cudaMemcpy(angle,d_angle, 100 * sizeof(float), cudaMemcpyDeviceToHost);
-	err = cudaMemcpy2D(color,pitch,d_color,100*3,3 *sizeof(unsigned char),100* sizeof(unsigned char), cudaMemcpyDeviceToHost);
-	errCheck(err);
+	errCheck(err,"cudaMemcpy(angle,d_angle, 100 * sizeof(float), cudaMemcpyDeviceToHost)");
+	// pitch of color array is 3+1 padded
+	err = cudaMemcpy2D(color,4,d_color,pitch,3 *sizeof(unsigned char),3, cudaMemcpyDeviceToHost);
+	errCheck(err,"cudaMemcpy2D(color,pitch,d_color,100*3,3 *sizeof(unsigned char),100* sizeof(unsigned char), cudaMemcpyDeviceToHost)");
     // measuring time it takes for triangle animations in 1000 iterations
     int i = 0, num = 1;
     
