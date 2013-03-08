@@ -50,6 +50,7 @@ using namespace std;
 //Include the nVidia CUDA runtime for Parallel programming
 //#include <cuda_runtime.h>
 
+
 // Include CImg library header.
 #include "CImg.h"
 using namespace cimg_library;
